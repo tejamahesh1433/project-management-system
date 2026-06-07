@@ -16,7 +16,6 @@ import com.projectmanagementsaas.board.repository.BoardColumnRepository;
 import com.projectmanagementsaas.board.repository.BoardRepository;
 import com.projectmanagementsaas.board.repository.BoardTaskRepository;
 import com.projectmanagementsaas.board.validator.BoardTaskValidator;
-import com.projectmanagementsaas.common.exception.BadRequestException;
 import com.projectmanagementsaas.common.exception.NotFoundException;
 import com.projectmanagementsaas.events.model.BoardColumnCreatedEvent;
 import com.projectmanagementsaas.events.model.BoardColumnDeletedEvent;

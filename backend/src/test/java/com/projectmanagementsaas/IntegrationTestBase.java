@@ -14,12 +14,14 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class IntegrationTestBase {
 
     @Container
+    @SuppressWarnings("resource")
     public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test");
 
     @Container
+    @SuppressWarnings("resource")
     public static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379);
 

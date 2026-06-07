@@ -1,6 +1,5 @@
 package com.projectmanagementsaas.task.service;
 
-import com.projectmanagementsaas.common.exception.BadRequestException;
 import com.projectmanagementsaas.common.exception.ForbiddenException;
 import com.projectmanagementsaas.common.exception.NotFoundException;
 import com.projectmanagementsaas.events.model.TaskAssignedEvent;
@@ -28,7 +27,6 @@ import com.projectmanagementsaas.task.entity.Task;
 import com.projectmanagementsaas.task.entity.TaskComment;
 import com.projectmanagementsaas.task.entity.TaskLabel;
 import com.projectmanagementsaas.task.entity.TaskPriority;
-import com.projectmanagementsaas.task.entity.TaskStatus;
 import com.projectmanagementsaas.task.entity.TaskType;
 import com.projectmanagementsaas.task.mapper.TaskMapper;
 import com.projectmanagementsaas.task.repository.LabelRepository;

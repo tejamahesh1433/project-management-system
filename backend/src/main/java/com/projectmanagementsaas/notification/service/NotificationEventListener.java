@@ -4,9 +4,7 @@ import com.projectmanagementsaas.document.repository.DocumentRepository;
 import com.projectmanagementsaas.events.model.*;
 import com.projectmanagementsaas.file.repository.FileAssetRepository;
 import com.projectmanagementsaas.notification.entity.NotificationType;
-import com.projectmanagementsaas.project.repository.ProjectRepository;
 import com.projectmanagementsaas.sprint.repository.SprintRepository;
-import com.projectmanagementsaas.task.repository.TaskCommentRepository;
 import com.projectmanagementsaas.task.repository.TaskRepository;
 import com.projectmanagementsaas.user.repository.UserRepository;
 import com.projectmanagementsaas.workspace.repository.WorkspaceRepository;
@@ -18,8 +16,6 @@ import org.springframework.stereotype.Component;
 public class NotificationEventListener {
     private final NotificationService notificationService;
     private final TaskRepository taskRepository;
-    private final TaskCommentRepository taskCommentRepository;
-    private final ProjectRepository projectRepository;
     private final SprintRepository sprintRepository;
     private final DocumentRepository documentRepository;
     private final FileAssetRepository fileAssetRepository;
@@ -27,13 +23,11 @@ public class NotificationEventListener {
     private final UserRepository userRepository;
 
     public NotificationEventListener(NotificationService notificationService, TaskRepository taskRepository,
-            TaskCommentRepository taskCommentRepository, ProjectRepository projectRepository, SprintRepository sprintRepository,
+            SprintRepository sprintRepository,
             DocumentRepository documentRepository, FileAssetRepository fileAssetRepository,
             WorkspaceRepository workspaceRepository, UserRepository userRepository) {
         this.notificationService = notificationService;
         this.taskRepository = taskRepository;
-        this.taskCommentRepository = taskCommentRepository;
-        this.projectRepository = projectRepository;
         this.sprintRepository = sprintRepository;
         this.documentRepository = documentRepository;
         this.fileAssetRepository = fileAssetRepository;
