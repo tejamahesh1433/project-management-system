@@ -3,7 +3,7 @@ CREATE INDEX IF NOT EXISTS idx_project_members_project_user ON project_members (
 CREATE INDEX IF NOT EXISTS idx_tasks_project_status ON tasks (project_id, status, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_project_assignee ON tasks (project_id, assignee_id, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_task_comments_task_created_at ON task_comments (task_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_board_tasks_board_column_position ON board_tasks (board_id, board_column_id, position);
+CREATE INDEX IF NOT EXISTS idx_board_tasks_board_column_position ON board_tasks (board_id, column_id, position);
 CREATE INDEX IF NOT EXISTS idx_sprints_project_status ON sprints (project_id, status, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_sprint_tasks_sprint_task ON sprint_tasks (sprint_id, task_id);
 CREATE INDEX IF NOT EXISTS idx_documents_project_status ON documents (project_id, status, deleted_at);
