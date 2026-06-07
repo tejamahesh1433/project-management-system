@@ -1,0 +1,16 @@
+CREATE INDEX IF NOT EXISTS idx_workspace_members_workspace_user ON workspace_members (workspace_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_project_members_project_user ON project_members (project_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_project_status ON tasks (project_id, status, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_project_assignee ON tasks (project_id, assignee_id, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_task_comments_task_created_at ON task_comments (task_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_board_tasks_board_column_position ON board_tasks (board_id, board_column_id, position);
+CREATE INDEX IF NOT EXISTS idx_sprints_project_status ON sprints (project_id, status, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_sprint_tasks_sprint_task ON sprint_tasks (sprint_id, task_id);
+CREATE INDEX IF NOT EXISTS idx_documents_project_status ON documents (project_id, status, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_file_assets_project_created_at ON file_assets (project_id, created_at, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created_at ON notifications (user_id, created_at, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_reports_workspace_generated_at ON reports (workspace_id, generated_at);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_workspace_updated ON ai_conversations (workspace_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_ai_rag_documents_workspace_source ON ai_rag_documents (workspace_id, source_type);
+CREATE INDEX IF NOT EXISTS idx_integrations_workspace_type ON integrations (workspace_id, type);
+CREATE INDEX IF NOT EXISTS idx_webhook_subscriptions_provider_enabled ON webhook_subscriptions (provider, enabled);
