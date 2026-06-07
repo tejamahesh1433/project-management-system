@@ -4,6 +4,7 @@ import com.projectmanagementsaas.auth.service.TokenHashService;
 import com.projectmanagementsaas.common.exception.BadRequestException;
 import com.projectmanagementsaas.common.exception.ForbiddenException;
 import com.projectmanagementsaas.common.exception.NotFoundException;
+import com.projectmanagementsaas.events.model.WorkspaceInvitationCreatedEvent;
 import com.projectmanagementsaas.user.entity.User;
 import com.projectmanagementsaas.user.repository.UserRepository;
 import com.projectmanagementsaas.workspace.dto.AcceptInvitationRequest;
@@ -34,6 +35,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +50,7 @@ public class WorkspaceService {
     private final WorkspaceAccessService workspaceAccessService;
     private final SlugValidator slugValidator;
     private final TokenHashService tokenHashService;
+    private final ApplicationEventPublisher eventPublisher;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public WorkspaceService(
@@ -58,7 +61,8 @@ public class WorkspaceService {
             UserRepository userRepository,
             WorkspaceAccessService workspaceAccessService,
             SlugValidator slugValidator,
-            TokenHashService tokenHashService
+            TokenHashService tokenHashService,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.organizationRepository = organizationRepository;
         this.workspaceRepository = workspaceRepository;
@@ -68,6 +72,7 @@ public class WorkspaceService {
         this.workspaceAccessService = workspaceAccessService;
         this.slugValidator = slugValidator;
         this.tokenHashService = tokenHashService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -188,7 +193,9 @@ public class WorkspaceService {
         invitation.setInvitedBy(inviter.getUser());
         invitation.setExpiresAt(Instant.now().plus(INVITATION_TTL));
 
-        return toInvitationResponse(workspaceInvitationRepository.save(invitation), rawToken);
+        WorkspaceInvitation savedInvitation = workspaceInvitationRepository.save(invitation);
+        eventPublisher.publishEvent(new WorkspaceInvitationCreatedEvent(savedInvitation.getId(), workspaceId, email, currentUserId));
+        return toInvitationResponse(savedInvitation, rawToken);
     }
 
     @Transactional

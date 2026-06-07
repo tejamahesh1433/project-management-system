@@ -65,6 +65,11 @@ The project is being built in phases. Currently completed:
   - Subscribed to core Spring Domain Events (ProjectCreated, TaskUpdated, etc.) to trace lifecycle actions.
   - Built an Audit Log module enforcing strict security compliance by tracking IP addresses and user actions.
   - Provided endpoint querying for workspace, project, and entity-specific history feeds.
+- **Phase 9: Real-Time Notifications**
+  - Designed Notification models including unread statuses and multi-channel preferences.
+  - Introduced granular settings (`NotificationPreference`) allowing users to toggle Push/Email/In-App toggles per event type.
+  - Integrated Spring WebSockets to emit push events directly to active UI clients.
+  - Subscribed to internal domain events to dispatch targeted alerts (e.g., Workspace Invitations).
 
 ## Top-Level Structure
 
