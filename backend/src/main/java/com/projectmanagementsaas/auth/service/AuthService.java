@@ -18,6 +18,8 @@ import com.projectmanagementsaas.common.exception.BadRequestException;
 import com.projectmanagementsaas.common.exception.UnauthorizedException;
 import com.projectmanagementsaas.role.entity.RoleName;
 import com.projectmanagementsaas.role.repository.RoleRepository;
+import com.projectmanagementsaas.security.BruteForceProtectionService;
+import com.projectmanagementsaas.security.PasswordPolicyValidator;
 import com.projectmanagementsaas.user.entity.User;
 import com.projectmanagementsaas.user.repository.UserRepository;
 import java.security.SecureRandom;
@@ -43,6 +45,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenHashService tokenHashService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final PasswordPolicyValidator passwordPolicyValidator;
+    private final BruteForceProtectionService bruteForceProtectionService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Duration refreshTokenTtl;
     private final Duration passwordResetTtl;
@@ -57,6 +61,8 @@ public class AuthService {
             JwtService jwtService,
             TokenHashService tokenHashService,
             TokenBlacklistService tokenBlacklistService,
+            PasswordPolicyValidator passwordPolicyValidator,
+            BruteForceProtectionService bruteForceProtectionService,
             @Value("${security.jwt.refresh-token-ttl-days}") long refreshTokenTtlDays,
             @Value("${security.password-reset.token-ttl-minutes}") long passwordResetTtlMinutes
     ) {
@@ -69,6 +75,8 @@ public class AuthService {
         this.jwtService = jwtService;
         this.tokenHashService = tokenHashService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.passwordPolicyValidator = passwordPolicyValidator;
+        this.bruteForceProtectionService = bruteForceProtectionService;
         this.refreshTokenTtl = Duration.ofDays(refreshTokenTtlDays);
         this.passwordResetTtl = Duration.ofMinutes(passwordResetTtlMinutes);
     }
@@ -76,6 +84,7 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase();
+        passwordPolicyValidator.validate(request.password());
         if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new BadRequestException("Email is already registered");
         }
@@ -92,14 +101,18 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        String email = request.email().trim().toLowerCase();
+        bruteForceProtectionService.assertAllowed(email);
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+                    new UsernamePasswordAuthenticationToken(email, request.password()));
         } catch (AuthenticationException exception) {
+            bruteForceProtectionService.recordFailure(email);
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        User user = userRepository.findByEmailIgnoreCase(request.email())
+        bruteForceProtectionService.recordSuccess(email);
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
         return issueTokens(user);
     }
@@ -144,6 +157,7 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        passwordPolicyValidator.validate(request.newPassword());
         PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHashService.hash(request.token()))
                 .orElseThrow(() -> new BadRequestException("Invalid password reset token"));
 

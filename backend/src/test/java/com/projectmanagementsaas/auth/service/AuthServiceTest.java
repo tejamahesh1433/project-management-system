@@ -20,6 +20,8 @@ import com.projectmanagementsaas.common.exception.BadRequestException;
 import com.projectmanagementsaas.role.entity.Role;
 import com.projectmanagementsaas.role.entity.RoleName;
 import com.projectmanagementsaas.role.repository.RoleRepository;
+import com.projectmanagementsaas.security.BruteForceProtectionService;
+import com.projectmanagementsaas.security.PasswordPolicyValidator;
 import com.projectmanagementsaas.user.entity.User;
 import com.projectmanagementsaas.user.repository.UserRepository;
 import java.time.Instant;
@@ -69,6 +71,8 @@ class AuthServiceTest {
                 jwtService,
                 tokenHashService,
                 tokenBlacklistService,
+                new PasswordPolicyValidator(),
+                new BruteForceProtectionService(5, 15),
                 30,
                 30);
     }
@@ -85,7 +89,7 @@ class AuthServiceTest {
         when(jwtService.createAccessToken(any(User.class))).thenReturn("access-token");
         when(jwtService.accessTokenTtlSeconds()).thenReturn(900L);
 
-        var response = authService.register(new RegisterRequest("User@Example.com", "password123", "User"));
+        var response = authService.register(new RegisterRequest("User@Example.com", "Password123!", "User"));
 
         assertThat(response.accessToken()).isEqualTo("access-token");
         assertThat(response.refreshToken()).isNotBlank();
@@ -94,14 +98,14 @@ class AuthServiceTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
-        assertThat(passwordEncoder.matches("password123", userCaptor.getValue().getPasswordHash())).isTrue();
+        assertThat(passwordEncoder.matches("Password123!", userCaptor.getValue().getPasswordHash())).isTrue();
     }
 
     @Test
     void registerRejectsDuplicateEmail() {
         when(userRepository.existsByEmailIgnoreCase("user@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> authService.register(new RegisterRequest("user@example.com", "password123", "User")))
+        assertThatThrownBy(() -> authService.register(new RegisterRequest("user@example.com", "Password123!", "User")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Email is already registered");
     }
@@ -157,9 +161,9 @@ class AuthServiceTest {
         when(passwordResetTokenRepository.findByTokenHash(tokenHashService.hash("reset-token")))
                 .thenReturn(Optional.of(resetToken));
 
-        authService.resetPassword(new ResetPasswordRequest("reset-token", "new-password"));
+        authService.resetPassword(new ResetPasswordRequest("reset-token", "NewPassword123!"));
 
-        assertThat(passwordEncoder.matches("new-password", user.getPasswordHash())).isTrue();
+        assertThat(passwordEncoder.matches("NewPassword123!", user.getPasswordHash())).isTrue();
         assertThat(resetToken.getUsedAt()).isNotNull();
         verify(userRepository).save(user);
         verify(passwordResetTokenRepository).save(resetToken);
