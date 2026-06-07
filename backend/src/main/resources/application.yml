@@ -42,3 +42,10 @@ backup:
   pg-restore-command: ${PG_RESTORE_COMMAND:}
   schedule-cron: ${BACKUP_SCHEDULE_CRON:0 0 2 * * *}
   system-user-email: ${BACKUP_SYSTEM_USER_EMAIL:}
+
+ai:
+  ollama:
+    enabled: ${OLLAMA_ENABLED:false}
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    embedding-model: nomic-embed-text
+    supported-models: qwen3,gemma3,phi4-mini
