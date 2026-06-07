@@ -60,6 +60,11 @@ The project is being built in phases. Currently completed:
   - Implemented a Document entity supporting version control and multiple revisions.
   - Built a File Asset system to track physical file uploads, paths, and byte sizes.
   - Deployed Spring Events to broadcast document creations, version bumps, and file operations.
+- **Phase 8: Activity and Audit Logs**
+  - Implemented a central Activity feed mechanism capturing platform-wide interactions.
+  - Subscribed to core Spring Domain Events (ProjectCreated, TaskUpdated, etc.) to trace lifecycle actions.
+  - Built an Audit Log module enforcing strict security compliance by tracking IP addresses and user actions.
+  - Provided endpoint querying for workspace, project, and entity-specific history feeds.
 
 ## Top-Level Structure
 
