@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
                                 "/api/v1/auth/reset-password")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(inputSanitizationFilter, UsernamePasswordAuthenticationFilter.class)
