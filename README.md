@@ -71,6 +71,29 @@ The project is being built in phases. Currently completed:
   - Integrated Spring WebSockets to emit push events directly to active UI clients.
   - Subscribed to internal domain events to dispatch targeted alerts (e.g., Workspace Invitations).
 
+- **Phase 10: Reports Module**
+  - Generated and persisted snapshot reports for workspaces, projects, teams, and sprints.
+  - Implemented background scheduling and real-time generation metrics.
+  - Provided endpoint exports for CSV and JSON format reporting.
+- **Phase 11: Analytics & Dashboards Module**
+  - Live metric aggregations (Task distribution, Sprint progress, Team completion times).
+  - Customizable reporting Dashboards equipped with positional Widgets.
+- **Phase 12: Production Hardening**
+  - Enforced strict rate-limiting per IP (API vs Auth endpoint differentiation) with Cloudflare proxy header support.
+  - Implemented Brute-Force lockout protection, password policy validators, and input sanitization to block XSS and injection payloads.
+  - Added Environment validators, Secret Masking in logs, and Startup Readiness Probes.
+- **Phase 13: Integrations Module**
+  - Self-hosted Integrations connections (GitHub, GitLab, Jenkins) linked to Workspaces and Projects.
+  - Built Webhook Subscription handlers parsing external payloads and updating connection status securely.
+- **Phase 14: Local AI Assistant Module**
+  - Integrated a local Ollama Engine (`nomic-embed-text`, `qwen3`) over a custom REST Client for secure, private inferences.
+  - Engineered a PostgreSQL-based RAG indexing system vectorizing all Workspaces, Projects, Tasks, and Documents.
+  - Orchestrated AI conversational memory strings and semantic-search context injection.
+- **Phase 15: RC Hardening & Deployment Prep**
+  - Deployed 16 critical compound database indices targeting standard multi-tenant relationship bottlenecks.
+  - Added MDC Trace `X-Correlation-ID` injection filters enabling end-to-end request-response log observability.
+  - Scaffolded Next.js global UX fallback boundaries (error/loading states) alongside extensive load testing suites.
+
 ## Top-Level Structure
 
 ```text
