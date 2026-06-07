@@ -46,6 +46,10 @@ The project is being built in phases. Currently completed:
   - Entities for Tasks, Comments, and Labels.
   - Task assignment, status tracking, and sub-task hierarchies.
   - Integrated with project roles to enforce edit and management privileges.
+- **Phase 5: Agile Kanban Boards Module**
+  - Implemented kanban boards with templates (SCRUM, KANBAN).
+  - Created customizable columns to manage status pipelines.
+  - Full support for drag-and-drop task reordering and cross-column transitions.
 
 ## Top-Level Structure
 
