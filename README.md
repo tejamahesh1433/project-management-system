@@ -50,6 +50,11 @@ The project is being built in phases. Currently completed:
   - Implemented kanban boards with templates (SCRUM, KANBAN).
   - Created customizable columns to manage status pipelines.
   - Full support for drag-and-drop task reordering and cross-column transitions.
+- **Phase 6: Sprint Management Module**
+  - Introduced sprint entities to group tasks within specific timeboxes.
+  - Implemented sprint lifecycle management (PLANNED, ACTIVE, COMPLETED, CANCELLED).
+  - Built sprint metrics calculations (completion percentages, story points tracking).
+  - Added "storyPoints" field to Task entity to integrate seamlessly with Sprint velocity.
 
 ## Top-Level Structure
 

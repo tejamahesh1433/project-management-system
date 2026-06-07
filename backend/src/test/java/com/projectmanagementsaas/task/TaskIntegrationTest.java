@@ -62,7 +62,8 @@ class TaskIntegrationTest extends IntegrationTestBase {
                 TaskPriority.HIGH,
                 TaskType.STORY,
                 null,
-                null);
+                null,
+                5);
         mockMvc.perform(put("/api/v1/tasks/{taskId}", taskId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -238,7 +239,8 @@ class TaskIntegrationTest extends IntegrationTestBase {
                 TaskPriority.MEDIUM,
                 type,
                 null,
-                null);
+                null,
+                3);
         String response = mockMvc.perform(post("/api/v1/tasks")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)

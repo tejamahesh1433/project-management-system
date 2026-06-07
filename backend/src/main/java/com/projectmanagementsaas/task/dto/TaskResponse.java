@@ -20,6 +20,7 @@ public record TaskResponse(
         UUID assigneeId,
         UUID createdBy,
         LocalDate dueDate,
+        int storyPoints,
         List<LabelResponse> labels,
         Instant createdAt,
         Instant updatedAt

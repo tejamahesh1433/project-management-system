@@ -2,6 +2,7 @@ package com.projectmanagementsaas.task.dto;
 
 import com.projectmanagementsaas.task.entity.TaskPriority;
 import com.projectmanagementsaas.task.entity.TaskType;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,6 +17,7 @@ public record CreateTaskRequest(
         TaskPriority priority,
         TaskType type,
         UUID assigneeId,
-        LocalDate dueDate
+        LocalDate dueDate,
+        @Min(0) Integer storyPoints
 ) {
 }

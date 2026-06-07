@@ -1,8 +1,7 @@
-package com.projectmanagementsaas.board;
+package com.projectmanagementsaas.sprint;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,18 +11,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectmanagementsaas.IntegrationTestBase;
 import com.projectmanagementsaas.auth.dto.RegisterRequest;
-import com.projectmanagementsaas.board.dto.CreateBoardColumnRequest;
-import com.projectmanagementsaas.board.dto.CreateBoardRequest;
-import com.projectmanagementsaas.board.dto.MoveTaskRequest;
-import com.projectmanagementsaas.board.dto.UpdateBoardColumnRequest;
-import com.projectmanagementsaas.board.dto.UpdateBoardRequest;
-import com.projectmanagementsaas.board.entity.BoardTemplate;
 import com.projectmanagementsaas.project.dto.CreateProjectRequest;
+import com.projectmanagementsaas.sprint.dto.AddSprintTaskRequest;
+import com.projectmanagementsaas.sprint.dto.CreateSprintRequest;
+import com.projectmanagementsaas.sprint.dto.UpdateSprintRequest;
+import com.projectmanagementsaas.task.dto.ChangeTaskStatusRequest;
 import com.projectmanagementsaas.task.dto.CreateTaskRequest;
 import com.projectmanagementsaas.task.entity.TaskPriority;
+import com.projectmanagementsaas.task.entity.TaskStatus;
 import com.projectmanagementsaas.task.entity.TaskType;
 import com.projectmanagementsaas.workspace.dto.CreateOrganizationRequest;
 import com.projectmanagementsaas.workspace.dto.CreateWorkspaceRequest;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-class BoardIntegrationTest extends IntegrationTestBase {
+class SprintIntegrationTest extends IntegrationTestBase {
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,95 +40,97 @@ class BoardIntegrationTest extends IntegrationTestBase {
     private ObjectMapper objectMapper;
 
     @Test
-    void supportsMultipleBoardsPerProjectAndBoardCrud() throws Exception {
-        UserSession owner = register("board-owner@example.com");
-        UUID projectId = createProjectWithWorkspace(owner.token(), "board-crud");
-        UUID kanbanBoardId = createBoard(owner.token(), projectId, "Kanban Board", BoardTemplate.KANBAN);
-        UUID scrumBoardId = createBoard(owner.token(), projectId, "Scrum Board", BoardTemplate.SCRUM);
+    void sprintLifecycleWorksAndOnlyOneActiveSprintIsAllowed() throws Exception {
+        UserSession owner = register("sprint-owner@example.com");
+        UUID projectId = createProjectWithWorkspace(owner.token(), "sprint-life");
+        UUID firstSprintId = createSprint(owner.token(), projectId, "Sprint 1");
+        UUID secondSprintId = createSprint(owner.token(), projectId, "Sprint 2");
 
-        mockMvc.perform(get("/api/v1/boards")
-                        .queryParam("projectId", projectId.toString())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
-
-        mockMvc.perform(get("/api/v1/boards/{boardId}", kanbanBoardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.columns.length()").value(3));
-
-        mockMvc.perform(get("/api/v1/boards/{boardId}", scrumBoardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.columns.length()").value(4));
-
-        mockMvc.perform(put("/api/v1/boards/{boardId}", kanbanBoardId)
+        mockMvc.perform(put("/api/v1/sprints/{sprintId}", firstSprintId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateBoardRequest("Updated Board"))))
+                        .content(objectMapper.writeValueAsString(new UpdateSprintRequest(
+                                "Sprint One",
+                                "Updated goal",
+                                LocalDate.now().plusDays(1),
+                                LocalDate.now().plusDays(14)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Updated Board"));
+                .andExpect(jsonPath("$.name").value("Sprint One"));
 
-        mockMvc.perform(delete("/api/v1/boards/{boardId}", scrumBoardId)
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/start", firstSprintId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Board deleted"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/start", secondSprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/complete", firstSprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/cancel", secondSprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 
     @Test
-    void supportsColumnCrudAndTaskMovementOrdering() throws Exception {
-        UserSession owner = register("board-move-owner@example.com");
-        UUID projectId = createProjectWithWorkspace(owner.token(), "board-move");
-        UUID boardId = createBoard(owner.token(), projectId, "Delivery", BoardTemplate.KANBAN);
-        JsonNode board = getBoard(owner.token(), boardId);
-        UUID todoColumnId = UUID.fromString(board.get("columns").get(0).get("id").asText());
-        UUID doneColumnId = UUID.fromString(board.get("columns").get(2).get("id").asText());
-        UUID firstTaskId = createTask(owner.token(), projectId, "First task");
-        UUID secondTaskId = createTask(owner.token(), projectId, "Second task");
+    void sprintTaskAssignmentAndMetricsWork() throws Exception {
+        UserSession owner = register("sprint-metrics-owner@example.com");
+        UUID projectId = createProjectWithWorkspace(owner.token(), "sprint-metrics");
+        UUID sprintId = createSprint(owner.token(), projectId, "Metrics Sprint");
+        UUID firstTaskId = createTask(owner.token(), projectId, "Done task", 5);
+        UUID secondTaskId = createTask(owner.token(), projectId, "Remaining task", 3);
 
-        mockMvc.perform(patch("/api/v1/boards/{boardId}/tasks/move", boardId)
+        addTaskToSprint(owner.token(), sprintId, firstTaskId)
+                .andExpect(jsonPath("$.storyPoints").value(5));
+        addTaskToSprint(owner.token(), sprintId, secondTaskId)
+                .andExpect(jsonPath("$.storyPoints").value(3));
+
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/tasks", sprintId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new MoveTaskRequest(firstTaskId, todoColumnId, 0))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.columns[0].tasks[0].taskId").value(firstTaskId.toString()))
-                .andExpect(jsonPath("$.columns[0].tasks[0].position").value(0));
+                        .content(objectMapper.writeValueAsString(new AddSprintTaskRequest(firstTaskId))))
+                .andExpect(status().isBadRequest());
 
-        mockMvc.perform(patch("/api/v1/boards/{boardId}/tasks/move", boardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new MoveTaskRequest(secondTaskId, todoColumnId, 0))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.columns[0].tasks[0].position").value(0))
-                .andExpect(jsonPath("$.columns[0].tasks[1].position").value(1));
-
-        mockMvc.perform(patch("/api/v1/boards/{boardId}/tasks/move", boardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new MoveTaskRequest(firstTaskId, doneColumnId, 0))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.columns[2].tasks[0].taskId").value(firstTaskId.toString()))
-                .andExpect(jsonPath("$.columns[2].tasks[0].position").value(0));
-
-        String createdColumn = mockMvc.perform(post("/api/v1/boards/{boardId}/columns", boardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CreateBoardColumnRequest("Review", 1))))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        UUID columnId = UUID.fromString(objectMapper.readTree(createdColumn).get("id").asText());
-
-        mockMvc.perform(put("/api/v1/boards/{boardId}/columns/{columnId}", boardId, columnId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateBoardColumnRequest("Code Review", 2))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Code Review"));
-
-        mockMvc.perform(delete("/api/v1/boards/{boardId}/columns/{columnId}", boardId, columnId)
+        mockMvc.perform(post("/api/v1/sprints/{sprintId}/start", sprintId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/tasks/{taskId}/status", firstTaskId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ChangeTaskStatusRequest(TaskStatus.DONE))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/sprints/{sprintId}/metrics", sprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalTasks").value(2))
+                .andExpect(jsonPath("$.completedTasks").value(1))
+                .andExpect(jsonPath("$.remainingTasks").value(1))
+                .andExpect(jsonPath("$.completionPercentage").value(50.0))
+                .andExpect(jsonPath("$.storyPointsCompleted").value(5))
+                .andExpect(jsonPath("$.storyPointsRemaining").value(3));
+
+        mockMvc.perform(delete("/api/v1/sprints/{sprintId}/tasks/{taskId}", sprintId, secondTaskId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/sprints/{sprintId}/tasks", sprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(owner.token())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions addTaskToSprint(String token, UUID sprintId, UUID taskId) throws Exception {
+        return mockMvc.perform(post("/api/v1/sprints/{sprintId}/tasks", sprintId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AddSprintTaskRequest(taskId))))
                 .andExpect(status().isOk());
     }
 
@@ -188,11 +189,16 @@ class BoardIntegrationTest extends IntegrationTestBase {
         return UUID.fromString(objectMapper.readTree(projectResponse).get("id").asText());
     }
 
-    private UUID createBoard(String token, UUID projectId, String name, BoardTemplate template) throws Exception {
-        String response = mockMvc.perform(post("/api/v1/boards")
+    private UUID createSprint(String token, UUID projectId, String name) throws Exception {
+        String response = mockMvc.perform(post("/api/v1/sprints")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CreateBoardRequest(projectId, name, template))))
+                        .content(objectMapper.writeValueAsString(new CreateSprintRequest(
+                                projectId,
+                                name,
+                                "Goal",
+                                LocalDate.now().plusDays(1),
+                                LocalDate.now().plusDays(14)))))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -200,7 +206,7 @@ class BoardIntegrationTest extends IntegrationTestBase {
         return UUID.fromString(objectMapper.readTree(response).get("id").asText());
     }
 
-    private UUID createTask(String token, UUID projectId, String title) throws Exception {
+    private UUID createTask(String token, UUID projectId, String title, int storyPoints) throws Exception {
         String response = mockMvc.perform(post("/api/v1/tasks")
                         .header(HttpHeaders.AUTHORIZATION, bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -213,22 +219,12 @@ class BoardIntegrationTest extends IntegrationTestBase {
                                 TaskType.TASK,
                                 null,
                                 null,
-                                0))))
+                                storyPoints))))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
         return UUID.fromString(objectMapper.readTree(response).get("id").asText());
-    }
-
-    private JsonNode getBoard(String token, UUID boardId) throws Exception {
-        String response = mockMvc.perform(get("/api/v1/boards/{boardId}", boardId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        return objectMapper.readTree(response);
     }
 
     private String bearer(String token) {

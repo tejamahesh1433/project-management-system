@@ -109,6 +109,7 @@ public class TaskService {
         task.setAssignee(assignee);
         task.setCreatedBy(getUser(currentUserId));
         task.setDueDate(request.dueDate());
+        task.setStoryPoints(request.storyPoints() == null ? 0 : request.storyPoints());
         Task savedTask = taskRepository.save(task);
         eventPublisher.publishEvent(new TaskCreatedEvent(savedTask.getId(), project.getId(), currentUserId));
         return taskMapper.toTaskResponse(savedTask);
@@ -143,6 +144,7 @@ public class TaskService {
         task.setType(request.type() == null ? task.getType() : request.type());
         task.setAssignee(assignee);
         task.setDueDate(request.dueDate());
+        task.setStoryPoints(request.storyPoints() == null ? task.getStoryPoints() : request.storyPoints());
         task.setUpdatedAt(Instant.now());
         Task savedTask = taskRepository.save(task);
         eventPublisher.publishEvent(new TaskUpdatedEvent(taskId, task.getProject().getId(), currentUserId));

@@ -62,6 +62,9 @@ public class Task {
     private LocalDate dueDate;
 
     @Column(nullable = false)
+    private int storyPoints = 0;
+
+    @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
     @Column(nullable = false)
@@ -152,6 +155,14 @@ public class Task {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public int getStoryPoints() {
+        return storyPoints;
+    }
+
+    public void setStoryPoints(int storyPoints) {
+        this.storyPoints = storyPoints;
     }
 
     public Instant getCreatedAt() {

@@ -34,6 +34,7 @@ public class TaskMapper {
                 task.getAssignee() == null ? null : task.getAssignee().getId(),
                 task.getCreatedBy().getId(),
                 task.getDueDate(),
+                task.getStoryPoints(),
                 labels,
                 task.getCreatedAt(),
                 task.getUpdatedAt());
