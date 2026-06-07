@@ -38,3 +38,4 @@ docs/            Project documentation placeholders
 scripts/         Development, deployment, and maintenance placeholders
 tests/           Frontend, backend, integration, e2e, load, and security placeholders
 ```
+# project-management-system
