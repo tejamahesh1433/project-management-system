@@ -55,6 +55,11 @@ The project is being built in phases. Currently completed:
   - Implemented sprint lifecycle management (PLANNED, ACTIVE, COMPLETED, CANCELLED).
   - Built sprint metrics calculations (completion percentages, story points tracking).
   - Added "storyPoints" field to Task entity to integrate seamlessly with Sprint velocity.
+- **Phase 7: Document and File Management Module**
+  - Designed folder hierarchies with parent/child relationships to structure content.
+  - Implemented a Document entity supporting version control and multiple revisions.
+  - Built a File Asset system to track physical file uploads, paths, and byte sizes.
+  - Deployed Spring Events to broadcast document creations, version bumps, and file operations.
 
 ## Top-Level Structure
 
