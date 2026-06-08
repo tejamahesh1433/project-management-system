@@ -28,7 +28,11 @@ export default function RegisterPage() {
     if (!form.email) e.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Invalid email";
     if (!form.password) e.password = "Password is required";
-    else if (form.password.length < 8) e.password = "At least 8 characters";
+    else if (form.password.length < 12 || form.password.length > 128) e.password = "Use 12 to 128 characters";
+    else if (!/[A-Z]/.test(form.password)) e.password = "Include an uppercase letter";
+    else if (!/[a-z]/.test(form.password)) e.password = "Include a lowercase letter";
+    else if (!/\d/.test(form.password)) e.password = "Include a number";
+    else if (!/[^A-Za-z0-9]/.test(form.password)) e.password = "Include a special character";
     if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match";
     return e;
   };
@@ -43,8 +47,7 @@ export default function RegisterPage() {
       const data = await authApi.register({
         email: form.email,
         password: form.password,
-        firstName: form.firstName,
-        lastName: form.lastName,
+        displayName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
       });
       setAuth(data.user, data.accessToken, data.refreshToken);
       toast("success", "Account created!", "Welcome to ProjectFlow.");
@@ -64,13 +67,13 @@ export default function RegisterPage() {
         <CardDescription>Get started with ProjectFlow for free</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <Input id="firstName" label="First name" placeholder="Jane" value={form.firstName} onChange={set("firstName")} error={errors.firstName} />
             <Input id="lastName" label="Last name" placeholder="Doe" value={form.lastName} onChange={set("lastName")} error={errors.lastName} />
           </div>
           <Input id="email" type="email" label="Email" placeholder="you@example.com" value={form.email} onChange={set("email")} error={errors.email} autoComplete="email" />
-          <Input id="password" type="password" label="Password" placeholder="Min. 8 characters" value={form.password} onChange={set("password")} error={errors.password} autoComplete="new-password" />
+          <Input id="password" type="password" label="Password" placeholder="12+ chars, Aa, 1, symbol" value={form.password} onChange={set("password")} error={errors.password} autoComplete="new-password" />
           <Input id="confirmPassword" type="password" label="Confirm password" placeholder="••••••••" value={form.confirmPassword} onChange={set("confirmPassword")} error={errors.confirmPassword} />
           <Button type="submit" loading={loading} className="w-full mt-1">
             Create account

@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken && !error.config?.url?.includes("/auth/refresh")) {
         try {
@@ -46,7 +46,7 @@ api.interceptors.response.use(
 export const authApi = {
   login: (email: string, password: string) =>
     api.post("/auth/login", { email, password }).then((r) => r.data),
-  register: (data: { email: string; password: string; firstName: string; lastName: string }) =>
+  register: (data: { email: string; password: string; displayName: string }) =>
     api.post("/auth/register", data).then((r) => r.data),
   logout: (refreshToken: string) =>
     api.post("/auth/logout", { refreshToken }, {
@@ -58,11 +58,19 @@ export const authApi = {
     api.post("/auth/reset-password", { token, newPassword }).then((r) => r.data),
 };
 
+// Organizations
+export const organizationApi = {
+  list: () => api.get("/organizations").then((r) => r.data),
+  get: (id: string) => api.get(`/organizations/${id}`).then((r) => r.data),
+  create: (data: { name: string; slug: string }) =>
+    api.post("/organizations", data).then((r) => r.data),
+};
+
 // Workspaces
 export const workspaceApi = {
   list: () => api.get("/workspaces").then((r) => r.data),
   get: (id: string) => api.get(`/workspaces/${id}`).then((r) => r.data),
-  create: (data: { name: string; description?: string }) =>
+  create: (data: { organizationId: string; name: string; slug: string; description?: string }) =>
     api.post("/workspaces", data).then((r) => r.data),
   update: (id: string, data: { name?: string; description?: string }) =>
     api.put(`/workspaces/${id}`, data).then((r) => r.data),
@@ -85,9 +93,9 @@ export const projectApi = {
   list: (workspaceId: string) =>
     api.get("/projects", { params: { workspaceId } }).then((r) => r.data),
   get: (id: string) => api.get(`/projects/${id}`).then((r) => r.data),
-  create: (data: { workspaceId: string; name: string; description?: string; color?: string }) =>
+  create: (data: { workspaceId: string; name: string; slug: string; description?: string; color?: string; icon?: string }) =>
     api.post("/projects", data).then((r) => r.data),
-  update: (id: string, data: Partial<{ name: string; description: string; color: string; status: string }>) =>
+  update: (id: string, data: Partial<{ name: string; slug: string; description: string; color: string; status: string; icon: string }>) =>
     api.put(`/projects/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/projects/${id}`).then((r) => r.data),
   archive: (id: string) => api.post(`/projects/${id}/archive`).then((r) => r.data),
@@ -116,7 +124,7 @@ export const taskApi = {
     assigneeId?: string;
     sprintId?: string;
     dueDate?: string;
-    estimatedHours?: number;
+    storyPoints?: number;
   }) => api.post("/tasks", data).then((r) => r.data),
   update: (id: string, data: Partial<{
     title: string;
@@ -124,7 +132,7 @@ export const taskApi = {
     priority: string;
     type: string;
     dueDate: string;
-    estimatedHours: number;
+    storyPoints: number;
     sprintId: string;
   }>) => api.put(`/tasks/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/tasks/${id}`).then((r) => r.data),
@@ -153,7 +161,7 @@ export const boardApi = {
   list: (projectId: string) =>
     api.get("/boards", { params: { projectId } }).then((r) => r.data),
   get: (id: string) => api.get(`/boards/${id}`).then((r) => r.data),
-  create: (data: { projectId: string; name: string; description?: string }) =>
+  create: (data: { projectId: string; name: string; description?: string; template: string }) =>
     api.post("/boards", data).then((r) => r.data),
   update: (id: string, data: { name?: string; description?: string }) =>
     api.put(`/boards/${id}`, data).then((r) => r.data),
@@ -230,9 +238,9 @@ export const fileApi = {
 // Activity
 export const activityApi = {
   workspace: (workspaceId: string) =>
-    api.get("/activities/workspace", { params: { workspaceId } }).then((r) => r.data),
+    api.get(`/activity/workspaces/${workspaceId}`).then((r) => r.data),
   project: (projectId: string) =>
-    api.get("/activities/project", { params: { projectId } }).then((r) => r.data),
+    api.get(`/activity/projects/${projectId}`).then((r) => r.data),
 };
 
 // Notifications
@@ -249,10 +257,10 @@ export const notificationApi = {
 
 // Analytics
 export const analyticsApi = {
-  workspace: (workspaceId: string, params?: Record<string, string>) =>
-    api.get("/analytics/workspace", { params: { workspaceId, ...params } }).then((r) => r.data),
-  project: (projectId: string, params?: Record<string, string>) =>
-    api.get("/analytics/project", { params: { projectId, ...params } }).then((r) => r.data),
+  workspace: (workspaceId: string, params?: Record<string, unknown>) =>
+    api.get(`/analytics/workspaces/${workspaceId}`, { params }).then((r) => r.data),
+  project: (projectId: string, params?: Record<string, unknown>) =>
+    api.get(`/analytics/projects/${projectId}`, { params }).then((r) => r.data),
 };
 
 // Reports

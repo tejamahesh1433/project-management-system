@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pms_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-pms_db}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-pms_db}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-pms_user}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-pms_pass}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-your-very-secure-jwt-secret-key-that-is-at-least-256-bits}
+      - SERVER_PORT=8081
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=1000
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8081/api/v1
+      - BACKEND_URL=http://backend:8081
+    ports:
+      - "3003:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:

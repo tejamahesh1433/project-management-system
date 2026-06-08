@@ -141,9 +141,9 @@ export function Sidebar({ workspaceId }: SidebarProps) {
         </Link>
         {user && (
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--color-accent)] transition-colors cursor-pointer group" onClick={() => { clearAuth(); window.location.href = "/login"; }}>
-            <Avatar name={`${user.firstName} ${user.lastName}`} src={user.avatarUrl} size="xs" />
+            <Avatar name={user.displayName || user.email} src={user.avatarUrl} size="xs" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium truncate">{user.displayName || user.email}</p>
               <p className="text-[10px] text-[var(--color-muted-foreground)] truncate">{user.email}</p>
             </div>
             <LogOut className="h-3.5 w-3.5 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />

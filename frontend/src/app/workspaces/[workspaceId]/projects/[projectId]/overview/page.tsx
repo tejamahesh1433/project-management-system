@@ -69,7 +69,7 @@ export default function ProjectOverviewPage() {
                     <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-muted-foreground)]">
                       <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />Created {formatDate(project.createdAt)}</span>
                       {members.length > 0 && (
-                        <AvatarGroup users={members.map((m: { user?: { firstName?: string; avatarUrl?: string } }) => ({ name: m.user?.firstName ?? "?", src: m.user?.avatarUrl }))} size="xs" />
+                        <AvatarGroup users={members.map((m: { displayName?: string }) => ({ name: m.displayName ?? "?" }))} size="xs" />
                       )}
                     </div>
                   </div>
@@ -136,7 +136,7 @@ export default function ProjectOverviewPage() {
                       {activeSprint.endDate && <span>End: {formatDate(activeSprint.endDate)}</span>}
                     </div>
                     <Link href={`/workspaces/${workspaceId}/projects/${projectId}/sprints/${activeSprint.id}/overview`}>
-                      <button className="mt-3 text-xs text-[var(--color-primary)] hover:underline">View sprint →</button>
+                      <button type="button" className="mt-3 text-xs text-[var(--color-primary)] hover:underline">View sprint →</button>
                     </Link>
                   </div>
                 ) : (
@@ -154,7 +154,7 @@ export default function ProjectOverviewPage() {
               <div className="flex items-center justify-between">
                 <CardTitle>Recent Tasks</CardTitle>
                 <Link href={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}>
-                  <button className="text-xs text-[var(--color-primary)] hover:underline">View all</button>
+                  <button type="button" className="text-xs text-[var(--color-primary)] hover:underline">View all</button>
                 </Link>
               </div>
             </CardHeader>
@@ -163,7 +163,7 @@ export default function ProjectOverviewPage() {
                 <div key={t.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--color-border)] last:border-0">
                   <TaskStatusBadge status={t.status} size="xs" />
                   <span className="flex-1 text-sm truncate">{t.title}</span>
-                  {t.assignee && <Avatar name={`${t.assignee.firstName} ${t.assignee.lastName}`} src={t.assignee.avatarUrl} size="xs" />}
+                  {t.assignee && <Avatar name={t.assignee.displayName ?? t.assignee.email} src={t.assignee.avatarUrl} size="xs" />}
                 </div>
               ))}
               {tasks.length === 0 && <p className="text-sm text-[var(--color-muted-foreground)] py-4 text-center">No tasks yet</p>}

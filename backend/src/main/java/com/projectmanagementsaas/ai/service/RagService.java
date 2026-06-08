@@ -77,6 +77,37 @@ public class RagService {
                 .reduce("", (left, right) -> left + "\n" + right);
     }
 
+    @Transactional(readOnly = true)
+    public String fullContext(UUID workspaceId, UUID projectId) {
+        StringBuilder context = new StringBuilder();
+        
+        List<Project> projects = projectId == null 
+                ? projectRepository.findByWorkspace_IdAndDeletedAtIsNullOrderByCreatedAtAsc(workspaceId)
+                : projectRepository.findById(projectId).map(List::of).orElse(List.of());
+                
+        for (Project project : projects) {
+            context.append("Project: ").append(project.getName())
+                   .append(" - ").append(nullToEmpty(project.getDescription())).append("\n");
+            
+            taskRepository.findByProject_IdAndDeletedAtIsNullOrderByCreatedAtAsc(project.getId()).forEach(task -> {
+                context.append("  Task: ").append(task.getTitle())
+                       .append(" (Status: ").append(task.getStatus()).append(")")
+                       .append(" - ").append(longSnippet(task.getDescription())).append("\n");
+            });
+            
+            documentRepository.findByProject_IdAndDeletedAtIsNullOrderByCreatedAtAsc(project.getId()).forEach(doc -> {
+                context.append("  Document: ").append(doc.getTitle())
+                       .append(" - ").append(longSnippet(doc.getContent())).append("\n");
+            });
+        }
+        
+        String result = context.toString();
+        if (result.length() > 20000) {
+            return result.substring(0, 20000) + "\n... (truncated)";
+        }
+        return result.isEmpty() ? "No projects or tasks found in this scope." : result;
+    }
+
     private AiSearchResult toResult(RagDocument document, List<Double> queryEmbedding) {
         double score = embeddingService.cosine(queryEmbedding, embeddingService.fromJson(document.getEmbeddingJson()));
         return new AiSearchResult(document.getSourceId(), document.getSourceType(), document.getTitle(), snippet(document.getContent()), score);
@@ -97,6 +128,11 @@ public class RagService {
     private String snippet(String value) {
         String normalized = nullToEmpty(value).replaceAll("\\s+", " ").trim();
         return normalized.length() > 220 ? normalized.substring(0, 220) : normalized;
+    }
+
+    private String longSnippet(String value) {
+        String normalized = nullToEmpty(value).replaceAll("\\s+", " ").trim();
+        return normalized.length() > 1000 ? normalized.substring(0, 1000) : normalized;
     }
 
     private String nullToEmpty(String value) {

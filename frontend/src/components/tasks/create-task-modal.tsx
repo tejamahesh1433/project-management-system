@@ -29,7 +29,7 @@ export function CreateTaskModal({ open, onClose, projectId, sprintId }: CreateTa
     priority: "MEDIUM" as TaskPriority,
     type: "TASK" as TaskType,
     dueDate: "",
-    estimatedHours: "",
+    storyPoints: "",
   });
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -46,13 +46,13 @@ export function CreateTaskModal({ open, onClose, projectId, sprintId }: CreateTa
         priority: form.priority,
         type: form.type,
         dueDate: form.dueDate || undefined,
-        estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined,
+        storyPoints: form.storyPoints ? Number(form.storyPoints) : undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
       toast("success", "Task created");
       onClose();
-      setForm({ title: "", description: "", status: "TODO", priority: "MEDIUM", type: "TASK", dueDate: "", estimatedHours: "" });
+      setForm({ title: "", description: "", status: "TODO", priority: "MEDIUM", type: "TASK", dueDate: "", storyPoints: "" });
     },
     onError: () => toast("error", "Failed to create task"),
   });
@@ -102,7 +102,7 @@ export function CreateTaskModal({ open, onClose, projectId, sprintId }: CreateTa
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Due date" type="date" value={form.dueDate} onChange={set("dueDate")} />
-          <Input label="Estimated hours" type="number" placeholder="0" value={form.estimatedHours} onChange={set("estimatedHours")} />
+          <Input label="Story points" type="number" placeholder="0" value={form.storyPoints} onChange={set("storyPoints")} />
         </div>
       </ModalBody>
       <ModalFooter>

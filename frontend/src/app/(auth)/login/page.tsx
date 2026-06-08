@@ -53,7 +53,7 @@ export default function LoginPage() {
         <CardDescription>Enter your credentials to access your workspace</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           <Input
             id="email"
             type="email"

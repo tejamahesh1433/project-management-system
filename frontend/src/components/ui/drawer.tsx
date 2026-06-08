@@ -36,8 +36,11 @@ export function Drawer({ open, onClose, title, children, side = "right", classNa
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ?? "Panel"}
         className={cn(
           "fixed top-0 bottom-0 flex flex-col border border-[var(--color-border)] bg-[var(--color-card)] shadow-2xl animate-slide-in overflow-hidden",
           side === "right" ? "right-0" : "left-0",
@@ -48,8 +51,8 @@ export function Drawer({ open, onClose, title, children, side = "right", classNa
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
           {title && <h2 className="text-base font-semibold">{title}</h2>}
-          <Button variant="ghost" size="icon-sm" onClick={onClose} className="ml-auto">
-            <X className="h-4 w-4" />
+          <Button variant="ghost" size="icon-sm" onClick={onClose} className="ml-auto" aria-label="Close panel">
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
         <div className="flex-1 overflow-y-auto">{children}</div>

@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useDebounce } from "@/lib/hooks";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 200);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", color: PROJECT_COLORS[0] });
 
@@ -38,7 +40,10 @@ export default function ProjectsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: () => projectApi.create({ workspaceId, ...form }),
+    mutationFn: () => {
+      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") || "project";
+      return projectApi.create({ workspaceId, slug, ...form });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
       toast("success", "Project created");
@@ -64,9 +69,12 @@ export default function ProjectsPage() {
     },
   });
 
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.description?.toLowerCase().includes(search.toLowerCase())
+  const filtered = useMemo(() =>
+    projects.filter((p) =>
+      p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.description?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    ),
+    [projects, debouncedSearch]
   );
 
   return (

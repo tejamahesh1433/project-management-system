@@ -28,17 +28,17 @@ export default function WorkspaceOverviewPage() {
     queryFn: () => projectApi.list(workspaceId),
   });
 
-  const { data: members = [] } = useQuery({
+  const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: queryKeys.workspaces.members(workspaceId),
     queryFn: () => workspaceApi.listMembers(workspaceId),
   });
 
-  const { data: activities = [] } = useQuery<ActivityType[]>({
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery<ActivityType[]>({
     queryKey: queryKeys.activity.workspace(workspaceId),
     queryFn: () => activityApi.workspace(workspaceId),
   });
 
-  const { data: notifications = [] } = useQuery<Notification[]>({
+  const { data: notifications = [], isLoading: notificationsLoading } = useQuery<Notification[]>({
     queryKey: queryKeys.notifications.all,
     queryFn: notificationApi.list,
   });
@@ -66,10 +66,10 @@ export default function WorkspaceOverviewPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: FolderKanban, label: "Projects", value: projects.length, color: "text-blue-500" },
-              { icon: Users, label: "Members", value: members.length, color: "text-purple-500" },
-              { icon: Activity, label: "Activities", value: activities.length, color: "text-green-500" },
-              { icon: Bell, label: "Unread", value: unread, color: "text-amber-500" },
+              { icon: FolderKanban, label: "Projects", value: projects.length, color: "text-blue-500", loading: projectsLoading },
+              { icon: Users, label: "Members", value: members.length, color: "text-purple-500", loading: membersLoading },
+              { icon: Activity, label: "Activities", value: activities.length, color: "text-green-500", loading: activitiesLoading },
+              { icon: Bell, label: "Unread", value: unread, color: "text-amber-500", loading: notificationsLoading },
             ].map((stat) => (
               <Card key={stat.label}>
                 <CardContent className="pt-6">
@@ -78,7 +78,7 @@ export default function WorkspaceOverviewPage() {
                       <stat.icon className={`h-5 w-5 ${stat.color}`} />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{wsLoading ? "—" : stat.value}</p>
+                      {stat.loading ? <Skeleton className="h-8 w-12 mb-1" /> : <p className="text-2xl font-bold">{stat.value}</p>}
                       <p className="text-xs text-[var(--color-muted-foreground)]">{stat.label}</p>
                     </div>
                   </div>
@@ -143,16 +143,20 @@ export default function WorkspaceOverviewPage() {
                 <CardTitle>Activity</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                {recentActivities.length === 0 ? (
+                {activitiesLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}
+                  </div>
+                ) : recentActivities.length === 0 ? (
                   <p className="text-sm text-[var(--color-muted-foreground)] text-center py-6">No activity yet</p>
                 ) : (
                   <div className="space-y-3">
                     {recentActivities.map((a) => (
                       <div key={a.id} className="flex items-start gap-2.5">
-                        <Avatar name={a.actor?.firstName ?? "?"} src={a.actor?.avatarUrl} size="xs" className="mt-0.5" />
+                        <Avatar name={a.actor?.displayName ?? "?"} src={a.actor?.avatarUrl} size="xs" className="mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-[var(--color-foreground)]">
-                            <span className="font-medium">{a.actor?.firstName}</span>{" "}
+                            <span className="font-medium">{a.actor?.displayName}</span>{" "}
                             <span className="text-[var(--color-muted-foreground)]">{a.action?.toLowerCase().replace(/_/g, " ")}</span>{" "}
                             <span className="font-medium">{a.entityType?.toLowerCase()}</span>
                           </p>

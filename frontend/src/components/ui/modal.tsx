@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useId, type ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
@@ -23,6 +23,9 @@ const sizeMap = {
 
 export function Modal({ open, onClose, title, description, children, className, size = "md" }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const descId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -31,6 +34,13 @@ export function Modal({ open, onClose, title, description, children, className, 
     };
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
+
+    // Move focus into dialog
+    const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
+      "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+    );
+    firstFocusable?.focus();
+
     return () => {
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
@@ -45,8 +55,13 @@ export function Modal({ open, onClose, title, description, children, className, 
       className="fixed inset-0 z-50 flex items-center justify-center"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-describedby={description ? descId : undefined}
         className={cn(
           "relative z-50 w-full mx-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-2xl animate-fade-in",
           sizeMap[size],
@@ -56,13 +71,13 @@ export function Modal({ open, onClose, title, description, children, className, 
         {(title || description) && (
           <div className="flex items-start justify-between p-6 pb-4">
             <div>
-              {title && <h2 className="text-lg font-semibold">{title}</h2>}
+              {title && <h2 id={titleId} className="text-lg font-semibold">{title}</h2>}
               {description && (
-                <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{description}</p>
+                <p id={descId} className="text-sm text-[var(--color-muted-foreground)] mt-1">{description}</p>
               )}
             </div>
-            <Button variant="ghost" size="icon-sm" onClick={onClose} className="ml-4 shrink-0">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="icon-sm" onClick={onClose} className="ml-4 shrink-0" aria-label="Close dialog">
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         )}

@@ -163,8 +163,8 @@ export function TaskDrawer({ taskId, projectId, workspaceId, onClose }: TaskDraw
             <div>
               <p className="text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">Assignee</p>
               <div className="flex items-center gap-2">
-                <Avatar name={`${task.assignee.firstName} ${task.assignee.lastName}`} src={task.assignee.avatarUrl} size="sm" />
-                <span className="text-sm">{task.assignee.firstName} {task.assignee.lastName}</span>
+                <Avatar name={task.assignee.displayName ?? task.assignee.email} src={task.assignee.avatarUrl} size="sm" />
+                <span className="text-sm">{task.assignee.displayName ?? task.assignee.email}</span>
               </div>
             </div>
           )}
@@ -182,12 +182,12 @@ export function TaskDrawer({ taskId, projectId, workspaceId, onClose }: TaskDraw
               Comments ({comments.length})
             </p>
             <div className="space-y-3 mb-3">
-              {comments.map((c: { id: string; author?: { firstName?: string; avatarUrl?: string }; content: string; createdAt: string }) => (
+              {comments.map((c: { id: string; author?: { displayName?: string; avatarUrl?: string }; content: string; createdAt: string }) => (
                 <div key={c.id} className="flex items-start gap-2.5">
-                  <Avatar name={c.author?.firstName ?? "?"} src={c.author?.avatarUrl} size="xs" className="mt-0.5" />
+                  <Avatar name={c.author?.displayName ?? "?"} src={c.author?.avatarUrl} size="xs" className="mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">{c.author?.firstName}</span>
+                      <span className="text-xs font-medium">{c.author?.displayName}</span>
                       <span className="text-[10px] text-[var(--color-muted-foreground)]">{formatRelativeTime(c.createdAt)}</span>
                     </div>
                     <p className="text-sm text-[var(--color-foreground)] mt-0.5">{c.content}</p>

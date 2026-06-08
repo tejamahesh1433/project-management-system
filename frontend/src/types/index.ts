@@ -2,11 +2,12 @@
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  displayName?: string;
+  displayName: string;
   avatarUrl?: string;
-  createdAt: string;
+  createdAt?: string;
+  // legacy aliases — backend returns displayName only
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface AuthResponse {
@@ -32,9 +33,10 @@ export interface WorkspaceMember {
   id: string;
   workspaceId: string;
   userId: string;
+  email: string;
+  displayName: string;
   role: "OWNER" | "ADMIN" | "MEMBER" | "VIEWER";
-  user: User;
-  joinedAt: string;
+  createdAt: string;
 }
 
 export interface WorkspaceInvitation {
@@ -68,8 +70,9 @@ export interface ProjectMember {
   id: string;
   projectId: string;
   userId: string;
+  email: string;
+  displayName: string;
   role: "LEAD" | "MEMBER" | "VIEWER";
-  user: User;
   joinedAt: string;
 }
 
@@ -93,7 +96,7 @@ export interface Task {
   reporter?: User;
   labels?: Label[];
   dueDate?: string;
-  estimatedHours?: number;
+  storyPoints?: number;
   position: number;
   createdAt: string;
   updatedAt: string;

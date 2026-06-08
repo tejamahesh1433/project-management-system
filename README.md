@@ -94,6 +94,55 @@ The project is being built in phases. Currently completed:
   - Added MDC Trace `X-Correlation-ID` injection filters enabling end-to-end request-response log observability.
   - Scaffolded Next.js global UX fallback boundaries (error/loading states) alongside extensive load testing suites.
 
+## Running Locally
+
+### One-command startup
+
+```bash
+./scripts/dev/start.sh
+```
+
+This starts Postgres, Redis, the Spring Boot backend, and the Next.js frontend.
+The frontend runs at `http://localhost:3001` and the backend runs at `http://localhost:8081`.
+
+Stop the backend and frontend with `Ctrl+C`. The Docker containers stay running.
+
+### Manual startup
+
+#### 1. Start the database and cache containers
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+This starts `pms_postgres_dev` (Postgres on port `5433`) and `pms_redis_dev` (Redis on port `6379`). Verify with:
+
+```bash
+docker ps --filter "name=pms_"
+```
+
+#### 2. Run the backend (Spring Boot)
+
+```bash
+cd backend
+DATABASE_URL="jdbc:postgresql://localhost:5433/project_management_saas" SERVER_PORT=8081 ./gradlew bootRun
+```
+
+- `SERVER_PORT` is optional. This project uses `8081` for local development so the frontend proxy can target a stable backend port.
+- Wait for the log line `Started ProjectManagementSaasApplication in X seconds`, then the API is available at `http://localhost:8081` (or whichever port you chose).
+- Stop with `Ctrl+C`.
+
+#### 3. Run the frontend (Next.js)
+
+```bash
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
+```
+
+- `--legacy-peer-deps` is required because Next.js `15.0.0` only declares peer support for React 18.x or the React 19 RC build, while this project pins the stable React 19 release.
+- The app will be available at `http://localhost:3000` (Next.js will pick the next free port, e.g. `3001`, if `3000` is already in use).
+
 ## Top-Level Structure
 
 ```text

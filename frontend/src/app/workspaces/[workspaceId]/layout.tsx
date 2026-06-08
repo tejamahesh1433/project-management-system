@@ -10,8 +10,11 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const { workspaceId } = await params;
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar workspaceId={workspaceId} />
-      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden md:flex">
+        <Sidebar workspaceId={workspaceId} />
+      </div>
+      <main className="flex flex-1 flex-col overflow-hidden min-w-0">{children}</main>
     </div>
   );
 }

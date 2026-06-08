@@ -58,7 +58,7 @@ public class AiAssistantService {
         ragService.indexWorkspace(request.workspaceId());
         AiConversation conversation = resolveConversation(currentUserId, request);
         saveMessage(conversation, AiMessageRole.USER, request.message());
-        String context = ragService.context(request.workspaceId(), request.projectId(), request.message());
+        String context = ragService.fullContext(request.workspaceId(), request.projectId());
         String prompt = "Use only this project-management context. Do not create tasks or take actions.\nContext:\n"
                 + context + "\nUser question:\n" + request.message();
         String answer = ollamaClient.chat(conversation.getModel(), prompt);
@@ -73,7 +73,7 @@ public class AiAssistantService {
         Project project = projectAccessService.requireProject(projectId);
         projectAccessService.requireProjectMember(projectId, currentUserId);
         ragService.indexWorkspace(project.getWorkspace().getId());
-        String context = ragService.context(project.getWorkspace().getId(), projectId, project.getName());
+        String context = ragService.fullContext(project.getWorkspace().getId(), projectId);
         return new AiSummaryResponse("PROJECT", projectId, ollamaClient.chat(AiModel.QWEN3,
                 "Summarize this project without recommendations or automation:\n" + context));
     }
@@ -94,7 +94,7 @@ public class AiAssistantService {
     public AiSummaryResponse summarizeWorkspace(UUID currentUserId, UUID workspaceId) {
         workspaceAccessService.requireMembership(workspaceId, currentUserId);
         ragService.indexWorkspace(workspaceId);
-        String context = ragService.context(workspaceId, null, "workspace summary");
+        String context = ragService.fullContext(workspaceId, null);
         return new AiSummaryResponse("WORKSPACE", workspaceId, ollamaClient.chat(AiModel.QWEN3,
                 "Summarize this workspace without recommendations or automation:\n" + context));
     }
